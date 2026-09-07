@@ -833,17 +833,41 @@
       // parent became -- that's the real height to cap nav to.
       var content = detailMount.firstElementChild;
       var h = content ? content.getBoundingClientRect().height : 0;
-      navEl.style.maxHeight = h > 0 ? h + 'px' : '';
+      // An explicit height, not max-height: max-height only ever caps nav
+      // from above, so if the tree's own real content happened to be
+      // *shorter* than detail (a short table, a long tree), stretch was
+      // still free to pad nav out to match detail's height anyway -- the
+      // cap never stopped that, since nav wasn't hitting it. Nav's real
+      // content then stopped short of its own now-taller box, leaving
+      // blank space below it before its own border, which is exactly the
+      // "still doesn't match" case reported. An explicit height overrides
+      // stretch outright, so nav is always exactly this tall -- content
+      // scrolling to fit it (already overflow-y: auto) if there's more
+      // than this, never padded if there's less.
+      navEl.style.height = h > 0 ? h + 'px' : '';
     };
     // Called once right away -- getBoundingClientRect() forces layout to
     // settle first, so this doesn't need to wait for anything -- rather
     // than depending solely on ResizeObserver's own first callback (also
-    // wired below, for every later leaf switch or window resize) to reach
-    // the browser before anything gets painted at the old, unsynced size.
+    // wired below, for every later leaf switch) to reach the browser
+    // before anything gets painted at the old, unsynced size.
     syncNavHeight();
     if (typeof ResizeObserver !== 'undefined') {
       new ResizeObserver(syncNavHeight).observe(detailMount);
     }
+    // Purely a window-resize reflow (e.g. opening DevTools, or just
+    // narrowing the browser) doesn't reliably retrigger the observer
+    // above: detailMount is the *stretched* flex item, so its own
+    // rendered box only ever grows to match nav's current (already-set)
+    // height -- when nav is still holding an old, narrower-viewport
+    // value, detailMount never visibly changes size even though its
+    // child's true content did, and the observer stays silent. A plain
+    // resize listener re-measures from the actual content (via the same
+    // syncNavHeight) regardless of what detailMount's stretched box
+    // currently reports, so a DevTools-narrowed table (columns wrapping,
+    // a horizontal scrollbar appearing) doesn't leave nav stuck taller
+    // than the table actually needs once the viewport settles.
+    window.addEventListener('resize', syncNavHeight);
 
     // Accessorials wires a real dialog behind its own add link; Services
     // has no add entry point at all -- omitted rather than left as a
