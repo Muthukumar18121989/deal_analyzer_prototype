@@ -1565,7 +1565,11 @@
       var bid = 'P310041099 (SP- Stampin Up)';
       var serviceGroup = 'UPS E-Standard to Canada';
       return el('div', { className: 'card' }, [
-        el('div', { className: 'view-filters' }, [
+        // --tight: two Rate Charts panels sit side by side, so each one's
+        // filter row is only ~half the page -- the default 240px field
+        // basis pushed Export onto a second line at 100% zoom. Narrower
+        // fields keep all three on one line.
+        el('div', { className: 'view-filters view-filters--tight' }, [
           el('div', { className: 'view-filters__field' }, [
             C.SelectField({ label: 'Choose Bid', value: bid, options: [{ value: bid, label: bid }] })
           ]),
@@ -1592,16 +1596,13 @@
      * excluded from .matrix's own tr:hover td rule -- also removes the
      * hover highlight that was catching the "to be" a <td> weight cell
      * along with the row's real values.
-     * Net is the only basis with reference data; Gross and Volume show the
-     * table's own empty state rather than invented figures.
+     * Only the Net basis has its own reference figures -- Gross and Volume
+     * reuse the same grid (per client), so `basis` no longer switches the
+     * table out, it just re-renders the identical one.
      */
     function rateChartGrid(scenario, basis) {
       var data = DA.data.rateChartGrid;
       var zones = data.zones;
-
-      if (basis !== 'net') {
-        return el('p', { className: 'table-empty', text: 'No data available.' });
-      }
 
       var head = el('thead', {}, [
         el('tr', {}, [
