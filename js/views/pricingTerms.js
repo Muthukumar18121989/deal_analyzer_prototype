@@ -280,7 +280,11 @@
         el('tbody', {}, bands.map(function (band, index) {
           var isLast = index === bands.length - 1;
           return el('tr', {}, [
-            el('th', { className: 'matrix__rowhead', attrs: { scope: 'row' } }, [editableCell(band.from)]),
+            // The band's `from` bound isn't edited on its own -- it's the
+            // previous band's `to` + 1, and adjusting the range is done
+            // from the `to` cell beside it (toCell()). Read-only, no
+            // pencil.
+            el('th', { className: 'matrix__rowhead', attrs: { scope: 'row' } }, [editableCell(band.from, { editable: false })]),
             el('td', { className: 'matrix__rowhead' }, [toCell(band, isLast)])
           ].concat(zones.map(function () {
             return el('td', { className: 'matrix__cell' }, [editableCell(band.rate)]);
