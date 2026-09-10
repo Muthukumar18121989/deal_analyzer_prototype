@@ -1105,13 +1105,38 @@
       drawer.open();
     }
 
-    function profileFilters() {
+    /**
+     * `opts.expand`, when given ({ mode, onMode }), adds the two expand
+     * toggles Cost Details / Zones / Weight & Cube carry beside Filters:
+     * "Show Service Only" opens every Service Group to its core services,
+     * "Show All" opens all the way to the zone / weight-tier detail. They
+     * read as one mode -- turning either on turns the other off.
+     */
+    function profileFilters(opts) {
+      opts = opts || {};
       var filtersButton = C.Button({
         label: 'Filters',
         variant: 'ghost',
         icon: DA.icons.filter(16),
         onClick: function () { openFiltersDrawer(filtersButton); }
       });
+
+      var expandToggles = null;
+      if (opts.expand) {
+        var mode = opts.expand.mode;
+        expandToggles = [
+          C.Toggle({
+            label: 'Show Service Only',
+            checked: mode === 'service',
+            onChange: function (on) { opts.expand.onMode(on ? 'service' : 'none'); }
+          }),
+          C.Toggle({
+            label: 'Show All',
+            checked: mode === 'all',
+            onChange: function (on) { opts.expand.onMode(on ? 'all' : 'none'); }
+          })
+        ];
+      }
 
       return el('div', { className: 'card' }, [
         el('div', { className: 'view-filters' }, [
@@ -1133,8 +1158,51 @@
             })
           ]),
           filtersButton
-        ])
+        ].concat(expandToggles || []))
       ]);
+    }
+
+    /* ---- Cost Details / Zones / Weight & Cube: Service Group tree -------- */
+
+    var SERVICE_GROUP_ORDER =
+      ['Next Day', '2nd Day', '3 Day Select', 'Ground', 'Worldwide', 'Standard', 'Other'];
+
+    /**
+     * Nests a flat core-service list under Service Group parent rows, and
+     * gives each core service a `children` array of last-level detail
+     * (zone rows for Cost/Zones, weight tiers for Weight & Cube), built by
+     * `lastLevel(row)`. `labelKey` is the column the label lives on --
+     * `serviceLabel` for Cost/Zones, `service` for Weight & Cube. A fresh
+     * tree per call, so each render owns its row identities (DataTable
+     * tracks expanded state by identity).
+     */
+    function groupByServiceGroup(rows, labelKey, lastLevel) {
+      var byGroup = {};
+      rows.forEach(function (row) {
+        var group = DA.data.serviceGroupOf(row[labelKey]);
+        (byGroup[group] = byGroup[group] || []).push(row);
+      });
+      return SERVICE_GROUP_ORDER.filter(function (g) { return byGroup[g]; }).map(function (g) {
+        var groupRow = { isServiceGroup: true, zone: '-', lane: '-' };
+        groupRow[labelKey] = g;
+        groupRow.children = byGroup[g].map(function (row) {
+          var service = Object.assign({}, row);
+          service.children = lastLevel(service);
+          return service;
+        });
+        return groupRow;
+      });
+    }
+
+    /** Sets each row's `expanded` flag for the current expand mode. */
+    function applyExpandMode(tree, mode) {
+      tree.forEach(function (groupRow) {
+        groupRow.expanded = mode === 'service' || mode === 'all';
+        (groupRow.children || []).forEach(function (service) {
+          service.expanded = mode === 'all';
+        });
+      });
+      return tree;
     }
 
     /**
@@ -1175,27 +1243,46 @@
       ];
     }
 
+    /**
+     * Cost Details / Zones: core services nested under Service Group rows,
+     * each opening onto its own zone-split detail. The Show Service Only /
+     * Show All toggles beside Filters drive how far the tree opens --
+     * changing one re-renders the whole view (filters included, so the
+     * toggles stay in sync) with fresh `expanded` flags.
+     */
     function profileTable(options) {
-      // Cost Details / Zones are a flat list of core services now (one
-      // row each, no zone/package drill-down -- see DA.data
-      // .shippingProfileCost / .shippingProfileZone), so no expandKey:
-      // the Core Service column renders as a plain cell, its label flush
-      // at the column's own padding and lined up with the "Core Service"
-      // header instead of indented past a (never-used) expander slot.
-      return el('div', { className: 'view-stack' }, [
-        profileFilters(),
-        el('div', { className: 'card' }, [
-          C.DataTable({
-            caption: options.caption,
-            embedded: true,
-            scrollable: true,
-            headerTone: 'warm',
-            tinted: true,
-            columns: profileKeyColumns().concat(options.columns),
-            rows: options.rows
-          })
-        ])
-      ]);
+      var mode = 'none';
+      var mount = el('div', {});
+
+      function render() {
+        var tree = applyExpandMode(
+          groupByServiceGroup(options.rows, 'serviceLabel', function (row) {
+            return DA.data.zoneBreakdown(row, 'serviceLabel', DA.data.additive[options.additive]);
+          }),
+          mode
+        );
+        DA.dom.clear(mount).appendChild(el('div', { className: 'view-stack' }, [
+          profileFilters({
+            expand: { mode: mode, onMode: function (next) { mode = next; render(); } }
+          }),
+          el('div', { className: 'card' }, [
+            C.DataTable({
+              caption: options.caption,
+              embedded: true,
+              scrollable: true,
+              headerTone: 'warm',
+              tinted: true,
+              expandKey: 'coreService',
+              getChildren: function (row) { return row.children || null; },
+              columns: profileKeyColumns().concat(options.columns),
+              rows: tree
+            })
+          ])
+        ]));
+      }
+
+      render();
+      return mount;
     }
 
     /** Filter row for the pricing term views. */
@@ -1469,40 +1556,60 @@
       ]);
     }
 
+    /**
+     * Weight & Cube: same Service Group -> Core Service -> detail tree as
+     * Cost Details / Zones, its last level being the billable-weight
+     * tiers behind each service. Same Show Service Only / Show All toggles.
+     */
     function weightCubeView() {
-      return el('div', { className: 'view-stack' }, [
-        profileFilters(),
-        el('div', { className: 'card' }, [
-          C.DataTable({
-            caption: 'Weight and cube',
-            embedded: true,
-            scrollable: true,
-            headerTone: 'warm',
-            tinted: true,
-            // Flat core-service list now (one row each, no weight-tier
-            // drill-down -- see DA.data.packetWeightCube), so no
-            // expandKey: the Core Service label sits flush at the
-            // column's own padding, lined up with its header.
-            columns: [
-              // serviceLabel() (defined above, already used by the
-              // Services tab) renders a plain row's service name.
-              { key: 'service', label: 'Core Service', width: '220px', className: 'is-rowhead', render: serviceLabel },
-              { key: 'billable', label: 'Billable Wt', width: '100px', className: 'is-numeric is-end' },
-              numeric('volume', 'Volume', { link: true, width: '95px' }),
-              numeric('adv', 'ADV', { link: true, width: '80px' }),
-              numeric('pps', 'PPS', { link: true, width: '80px' }),
-              numeric('weightPiece', 'Weight/Piece', { link: true, width: '120px' }),
-              numeric('baseGrossRev', 'Base Gross Rev', { link: true, width: '135px' }),
-              numeric('baseNetRev', 'Base Net Rev', { link: true, width: '125px' }),
-              numeric('baseDisc', 'Base Disc', { width: '100px' }),
-              numeric('baseRpp', 'Base RPP', { link: true, width: '105px' }),
-              numeric('baseProfit', 'Base Profit', { link: true, width: '110px' }),
-              numeric('baseOr', 'Base OR', { width: '95px' })
-            ],
-            rows: DA.data.packetWeightCube
-          })
-        ])
-      ]);
+      var mode = 'none';
+      var mount = el('div', {});
+
+      function render() {
+        var tree = applyExpandMode(
+          groupByServiceGroup(DA.data.packetWeightCube, 'service', function (row) {
+            return DA.data.weightBreakdown(row, 'service', DA.data.additive.service);
+          }),
+          mode
+        );
+        DA.dom.clear(mount).appendChild(el('div', { className: 'view-stack' }, [
+          profileFilters({
+            expand: { mode: mode, onMode: function (next) { mode = next; render(); } }
+          }),
+          el('div', { className: 'card' }, [
+            C.DataTable({
+              caption: 'Weight and cube',
+              embedded: true,
+              scrollable: true,
+              headerTone: 'warm',
+              tinted: true,
+              expandKey: 'service',
+              getChildren: function (row) { return row.children || null; },
+              columns: [
+                // serviceLabel() renders a Service Group / core-service
+                // row as its plain name; a weight-tier child carries a
+                // blank service and shows its tier in Billable Wt.
+                { key: 'service', label: 'Core Service', width: '220px', className: 'is-rowhead', render: serviceLabel },
+                { key: 'billable', label: 'Billable Wt', width: '100px', className: 'is-numeric is-end' },
+                numeric('volume', 'Volume', { link: true, width: '95px' }),
+                numeric('adv', 'ADV', { link: true, width: '80px' }),
+                numeric('pps', 'PPS', { link: true, width: '80px' }),
+                numeric('weightPiece', 'Weight/Piece', { link: true, width: '120px' }),
+                numeric('baseGrossRev', 'Base Gross Rev', { link: true, width: '135px' }),
+                numeric('baseNetRev', 'Base Net Rev', { link: true, width: '125px' }),
+                numeric('baseDisc', 'Base Disc', { width: '100px' }),
+                numeric('baseRpp', 'Base RPP', { link: true, width: '105px' }),
+                numeric('baseProfit', 'Base Profit', { link: true, width: '110px' }),
+                numeric('baseOr', 'Base OR', { width: '95px' })
+              ],
+              rows: tree
+            })
+          ])
+        ]));
+      }
+
+      render();
+      return mount;
     }
 
     /**

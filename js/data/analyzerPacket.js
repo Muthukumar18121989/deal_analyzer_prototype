@@ -1039,8 +1039,10 @@
    * hierarchy), mapped into each tab's own column set. Figures that line
    * up with a Services figure are carried across; the rest are plausible
    * dummy values, varied a little per row so a column doesn't read as a
-   * flat repeat. Rows are leaves (children: []), so no per-service zone /
-   * package drill-down -- the point is the shared, ordered list.
+   * flat repeat. The views group these under Service Group parent rows
+   * and open each core service onto its own zone / weight-tier detail --
+   * see groupByServiceGroup() in analyzerPacketPage.js -- with the two
+   * "Show Service Only" / "Show All" toggles driving how far that opens.
    */
   function figNum(raw) {
     var m = parseFigureNumber(raw);
@@ -1073,7 +1075,7 @@
 
   DA.data.shippingProfileCost = CORE_SERVICE_ROWS.map(function (r) {
     return {
-      serviceLabel: r.label, zone: '-', lane: '-', children: [],
+      serviceLabel: r.label, zone: '-', lane: '-',
       volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
       avgCube: r.avgCube, avgCubeFactor: r.avgCubeFactor, puDens: r.puDens, dlDens: r.dlDens,
       pu: r.pu, ls: r.ls, cs: r.cs, ar: r.ar, jf: r.jf, gf: r.gf, br: r.br,
@@ -1084,7 +1086,7 @@
 
   DA.data.shippingProfileZone = CORE_SERVICE_ROWS.map(function (r) {
     return {
-      serviceLabel: r.label, zone: '-', lane: '-', children: [],
+      serviceLabel: r.label, zone: '-', lane: '-',
       volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
       freightGrossSpent: r.baseGrossRev, freightNetSpent: r.baseNetRev,
       freightDiscount: r.disc, freightRpp: r.baseRpp,
@@ -1094,12 +1096,29 @@
 
   DA.data.packetWeightCube = CORE_SERVICE_ROWS.map(function (r) {
     return {
-      service: r.label, billable: '-', children: [],
+      service: r.label, billable: '-',
       volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
       baseGrossRev: r.baseGrossRev, baseNetRev: r.baseNetRev, baseDisc: r.disc,
       baseRpp: r.baseRpp, baseProfit: r.baseProfit, baseOr: r.baseOr
     };
   });
+
+  /**
+   * Which Service Group a core-service label belongs to -- the top level
+   * the Cost Details / Zones / Weight & Cube tables group their rows
+   * under. Order of the returns doesn't matter; SERVICE_GROUP_ORDER
+   * (analyzerPacketPage.js) fixes the display order.
+   */
+  DA.data.serviceGroupOf = function serviceGroupOf(label) {
+    var s = String(label == null ? '' : label).replace(/^[NEI]-\s*/, '').toLowerCase();
+    if (s.indexOf('next day') !== -1) return 'Next Day';
+    if (s.indexOf('2nd day') !== -1) return '2nd Day';
+    if (s.indexOf('3 day') !== -1) return '3 Day Select';
+    if (s.indexOf('ground') !== -1 || s.indexOf('surepost') !== -1) return 'Ground';
+    if (s.indexOf('worldwide') !== -1 || s.indexOf('import express') !== -1) return 'Worldwide';
+    if (s.indexOf('standard') !== -1) return 'Standard';
+    return 'Other';
+  };
 
   /**
    * Rate Charts' Net-basis grid: a $ rate per zone/weight-tier cell, the same
