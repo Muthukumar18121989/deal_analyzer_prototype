@@ -345,10 +345,11 @@
         headerTone: 'warm',
         columns: [
           {
-            key: 'zone', label: 'Zone', width: '160px',
-            render: function (row) {
-              return el('a', { text: row.zone, attrs: { href: '#zone-detail', 'aria-label': 'Zone ' + row.zone } });
-            }
+            // Plain value, not a link -- the "#zone-detail" href went
+            // nowhere and the underline/teal read as a hyperlink.
+            // is-plain keeps it dark like a normal cell instead of the
+            // table's default teal.
+            key: 'zone', label: 'Zone', width: '160px', className: 'is-plain'
           },
           { key: 'adv', label: 'ADV', width: '160px', className: 'is-numeric is-end', headerClassName: 'is-end' },
           {
