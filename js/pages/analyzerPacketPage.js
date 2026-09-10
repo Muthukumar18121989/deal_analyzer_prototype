@@ -1702,7 +1702,7 @@
           // other, genuinely wide table in the app still needs), so the
           // single Dollar Amount column finally renders at its own
           // intended size.
-          el('div', { className: 'card', style: { 'max-width': '350px' } }, [
+          el('div', { className: 'card', style: { 'max-width': '220px' } }, [
             C.DataTable({
               caption: 'Adjustments',
               embedded: true,
@@ -1711,7 +1711,7 @@
                 {
                   key: 'amount',
                   label: 'Dollar Amount',
-                  width: '330px',
+                  width: '200px',
                   render: function (row) { return editableCell(row.amount); }
                 }
               ],
