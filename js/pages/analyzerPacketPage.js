@@ -1155,12 +1155,6 @@
           label: 'Core Service',
           width: '220px',
           className: 'is-rowhead',
-          // A Core Service group's own row, its package row and every
-          // zone/lane row underneath read as one merged block -- no
-          // divider between them -- rather than each carrying its own
-          // separator; the line only returns once a fresh, top-level
-          // Core Service row starts.
-          mergeExpanded: true,
           render: function (row) {
             if (row.pkgType) {
               return el('span', { className: 'service-pkg' }, [
@@ -1182,6 +1176,12 @@
     }
 
     function profileTable(options) {
+      // Cost Details / Zones are a flat list of core services now (one
+      // row each, no zone/package drill-down -- see DA.data
+      // .shippingProfileCost / .shippingProfileZone), so no expandKey:
+      // the Core Service column renders as a plain cell, its label flush
+      // at the column's own padding and lined up with the "Core Service"
+      // header instead of indented past a (never-used) expander slot.
       return el('div', { className: 'view-stack' }, [
         profileFilters(),
         el('div', { className: 'card' }, [
@@ -1191,22 +1191,6 @@
             scrollable: true,
             headerTone: 'warm',
             tinted: true,
-            expandKey: 'coreService',
-            // A row's own static `children` (Cost Details' package-type
-            // rows, and the zone rows under them) win over the generic
-            // zone split every other lane still opens onto dynamically. A
-            // package-type row with no real `children` of its own (Cost
-            // Details' two collapsed-in-the-screenshot rows, with no
-            // visible contents to give it) stays a leaf rather than
-            // falling through to that generic split -- it shares
-            // zone: '-' with an ordinary lane row (so its own Zone column
-            // reads as a dash, matching the screenshot) but isn't one.
-            getChildren: function (row) {
-              if (row.children) return row.children;
-              if (row.pkgType) return null;
-              if (row.zone !== '-') return null;
-              return DA.data.zoneBreakdown(row, 'service', DA.data.additive[options.additive]);
-            },
             columns: profileKeyColumns().concat(options.columns),
             rows: options.rows
           })
@@ -1495,33 +1479,14 @@
             scrollable: true,
             headerTone: 'warm',
             tinted: true,
-            expandKey: 'service',
-            // A service opens onto the billable weight tiers behind it --
-            // unless it already carries a real `children` array of its own
-            // (the package-type row and the billable rows under it, on the
-            // 2 services Weight & Cube's own reference screen breaks out),
-            // which wins over the generic split. A package-type row with
-            // no real children of its own (shown collapsed in that
-            // reference, contents not given) stays a leaf rather than
-            // falling through to it. A row that's already a billable-
-            // weight-tier leaf (a real `billable` number of its own, not
-            // the '-' every Core Service/package row carries) stays a
-            // leaf too, rather than breaking down a second time.
-            getChildren: function (row) {
-              if (row.children) return row.children;
-              if (row.pkgType) return null;
-              if (row.billable !== '-') return null;
-              return DA.data.weightBreakdown(row, 'service', DA.data.additive.service);
-            },
+            // Flat core-service list now (one row each, no weight-tier
+            // drill-down -- see DA.data.packetWeightCube), so no
+            // expandKey: the Core Service label sits flush at the
+            // column's own padding, lined up with its header.
             columns: [
               // serviceLabel() (defined above, already used by the
-              // Services tab) renders a package-type row's two-line
-              // "UPS <service> -Pkg <type>" plus superscript codes, and a
-              // plain row's own service name otherwise -- reused as-is.
-              // mergeExpanded matches Cost Details/Zones' own Core Service
-              // column: no divider between a service row and the
-              // package/billable-weight rows it opens onto.
-              { key: 'service', label: 'Core Service', width: '220px', className: 'is-rowhead', render: serviceLabel, mergeExpanded: true },
+              // Services tab) renders a plain row's service name.
+              { key: 'service', label: 'Core Service', width: '220px', className: 'is-rowhead', render: serviceLabel },
               { key: 'billable', label: 'Billable Wt', width: '100px', className: 'is-numeric is-end' },
               numeric('volume', 'Volume', { link: true, width: '95px' }),
               numeric('adv', 'ADV', { link: true, width: '80px' }),
