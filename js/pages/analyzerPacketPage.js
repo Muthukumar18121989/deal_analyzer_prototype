@@ -1391,6 +1391,12 @@
             tinted: true,
             expandKey: 'service',
             getChildren: function (row) {
+              // A package-type row (Commercial/Residential, already one
+              // level deep) is a leaf -- without this guard it fell back
+              // through to packageBreakdown() again and rendered an
+              // expander chevron onto rows with nothing under them, the
+              // same guard costView()/weightCubeView() already carry.
+              if (row.pkgType) return null;
               return DA.data.packageBreakdown(row, 'service', DA.data.additive.service);
             },
             columns: [
