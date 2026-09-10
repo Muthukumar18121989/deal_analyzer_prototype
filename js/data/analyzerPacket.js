@@ -352,210 +352,12 @@
 
   /* ---- Shipping Profiles tab ---------------------------------------------- */
 
-  /**
-   * Every shipping profile view lists the same lanes in the same order, so the
-   * keys live once and each view supplies only its own figures.
+  /*
+   * Cost Details, Zones and Weight & Cube all list the same core
+   * services as the Services tab, in the same order -- built from
+   * DA.data.packetServices (below) rather than three hand-typed sets.
+   * The assignments live just after packetServices.
    */
-  var PROFILE_KEYS = [
-    { movement: 'N', mode: 'AIR', service: '1DA', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'AIR', service: '1DM', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'AIR', service: '1DP', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'AIR', service: '2DA', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'AIR', service: '2DM', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'AIR', service: '3DS', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'GROUND', service: 'GND', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'GROUND SAV', service: 'USG', zone: '-', lane: '-' },
-    { movement: 'N', mode: 'GROUND SAV', service: 'USL', zone: '-', lane: '-' }
-  ];
-
-  function withKeys(figures) {
-    return PROFILE_KEYS.map(function (keys, index) {
-      return Object.assign({}, keys, figures[index]);
-    });
-  }
-
-  /**
-   * Cost Details row hierarchy/labels, per the client's reference
-   * screenshot (Analyzer > Cost Details update). Only the 4 rows it shows
-   * (1DA/1DP/2DA/3DS) get a friendly serviceLabel and updated visible
-   * figures -- the other 5 rows are untouched, unlabeled Movement-Mode-
-   * Service rows as before, per the client's own scoping choice.
-   *
-   * 1DA and 1DP additionally get a real `children` array: a package-type
-   * row ("UPS <service> -Pkg <type>", superscript product/rate codes,
-   * reusing serviceLabel()'s own .service-pkg markup from the Services
-   * tab) that shows "-" for every figure of its own -- real numbers only
-   * surface one level deeper, on the Zone/Lane rows the package row's own
-   * chevron opens onto, exactly as the client's screenshot and its
-   * explicit expand-behavior instructions describe. 1DA's own zone rows
-   * (102/104/105/.../108, all lane US) are the screenshot's own values;
-   * 1DP's two package rows (Commercial/Residential) are shown collapsed
-   * in the screenshot with their contents not visible, so they're left as
-   * leaves rather than inventing unseen zone data for them.
-   *
-   * Every column not visible in the screenshot (DL Dens, PU, LS, CS, AR,
-   * JF, GF, BR, PD, DL, NO, OTH, Total Freight Cost, Cost Adj, New Cost)
-   * keeps this row's own pre-existing placeholder figures unchanged, on
-   * every row including 1DA's new zone children -- only the columns the
-   * screenshot actually shows were replaced.
-   */
-  DA.data.shippingProfileCost = withKeys([
-    {
-      serviceLabel: 'N-Next Day Air',
-      expanded: true,
-      volume: '234.0', adv: '0.9', pps: '1.00', weightPiece: '8.0', avgCube: '1.24', avgCubeFactor: '0.98', puDens: '1.8',
-      dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57',
-      children: [
-        {
-          movement: '', mode: '', service: '',
-          expanded: true,
-          pkgType: 'Residential', pkgParentLabel: 'N-Next Day Air', pkgCodes: 'FC, PP, RS, RTP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-', avgCube: '-', avgCubeFactor: '-', puDens: '-',
-          dlDens: '-', pu: '-', ls: '-', cs: '-', ar: '-', jf: '-', gf: '-', br: '-', pd: '-', dl: '-', no: '-', oth: '-', totalFreightCost: '-', costAdj: '-', newCost: '-',
-          children: [
-            { movement: '', mode: '', service: '', zone: '102', lane: 'US', volume: '52.0', adv: '0.2', pps: '1.00', weightPiece: '10.0', avgCube: '1.04', avgCubeFactor: '1.20', puDens: '0.9', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' },
-            { movement: '', mode: '', service: '', zone: '104', lane: 'US', volume: '52.0', adv: '0.2', pps: '1.00', weightPiece: '2.0', avgCube: '0.89', avgCubeFactor: '0.20', puDens: '12.4', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' },
-            { movement: '', mode: '', service: '', zone: '105', lane: 'US', volume: '26.0', adv: '0.1', pps: '1.00', weightPiece: '2.0', avgCube: '0.87', avgCubeFactor: '0.19', puDens: '12.4', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' },
-            { movement: '', mode: '', service: '', zone: '106', lane: 'US', volume: '26.0', adv: '0.1', pps: '1.00', weightPiece: '19.0', avgCube: '2.79', avgCubeFactor: '2.04', puDens: '0.9', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' },
-            { movement: '', mode: '', service: '', zone: '107', lane: 'US', volume: '26.0', adv: '0.1', pps: '1.00', weightPiece: '16.0', avgCube: '1.03', avgCubeFactor: '1.79', puDens: '1.8', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' },
-            { movement: '', mode: '', service: '', zone: '108', lane: 'US', volume: '52.0', adv: '0.2', pps: '1.00', weightPiece: '5.5', avgCube: '1.32', avgCubeFactor: '1.00', puDens: '2.2', dlDens: '1.65', pu: '$ 2.42', ls: '$ 0.47', cs: '$ 2.15', ar: '$ 3.62', jf: '$ 12.31', gf: '$ 2.12', br: '$ 0.0', pd: '$ 1.83', dl: '$ 5.59', no: '$ 3.06', oth: '$ 0.0', totalFreightCost: '$ 33.57', costAdj: '-', newCost: '$ 33.57' }
-          ]
-        }
-      ]
-    },
-    { serviceLabel: 'N-Next Day Air Early', volume: '15.0', adv: '3.0', pps: '1.0', weightPiece: '14.87', avgCube: '1.51', avgCubeFactor: '1.07', puDens: '4.54', dlDens: '1.61', pu: '$ 4.9', ls: '$ 0.39', cs: '$ 2.17', ar: '$ 3.72', jf: '$ 18.69', gf: '$ 2.83', br: '$ 0.0', pd: '$ 2.07', dl: '$ 8.43', no: '$ 5.17', oth: '$ 0.0', totalFreightCost: '$ 48.39', costAdj: '-', newCost: '$ 48.39' },
-    {
-      serviceLabel: 'N-Next Day Air Saver',
-      expanded: true,
-      volume: '52.0', adv: '0.2', pps: '1.00', weightPiece: '15.0', avgCube: '1.47', avgCubeFactor: '1.64', puDens: '2.1',
-      dlDens: '4.04', pu: '$ 3.92', ls: '$ 0.17', cs: '$ 2.64', ar: '$ 3.95', jf: '$ 10.26', gf: '$ 1.87', br: '$ 0.0', pd: '$ 1.92', dl: '$ 2.14', no: '$ 2.5', oth: '$ 0.0', totalFreightCost: '$ 29.37', costAdj: '-', newCost: '$ 29.37',
-      children: [
-        {
-          movement: '', mode: '', service: '',
-          pkgType: 'Commercial', pkgParentLabel: 'N-Next Day Air Saver', pkgCodes: 'FC, PP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-', avgCube: '-', avgCubeFactor: '-', puDens: '-',
-          dlDens: '-', pu: '-', ls: '-', cs: '-', ar: '-', jf: '-', gf: '-', br: '-', pd: '-', dl: '-', no: '-', oth: '-', totalFreightCost: '-', costAdj: '-', newCost: '-'
-        },
-        {
-          movement: '', mode: '', service: '',
-          pkgType: 'Residential', pkgParentLabel: 'N-Next Day Air Saver', pkgCodes: 'FC, PP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-', avgCube: '-', avgCubeFactor: '-', puDens: '-',
-          dlDens: '-', pu: '-', ls: '-', cs: '-', ar: '-', jf: '-', gf: '-', br: '-', pd: '-', dl: '-', no: '-', oth: '-', totalFreightCost: '-', costAdj: '-', newCost: '-'
-        }
-      ]
-    },
-    {
-      serviceLabel: 'N-2nd Day Air',
-      volume: '26.0', adv: '0.1', pps: '1.000', weightPiece: '17.0', avgCube: '1.10', avgCubeFactor: '1.85', puDens: '1.9',
-      dlDens: '2.68', pu: '$ 4.77', ls: '$ 0.49', cs: '$ 1.81', ar: '$ 0.43', jf: '$ 1.48', gf: '$ 0.9', br: '$ 0.0', pd: '$ 1.25', dl: '$ 2.85', no: '$ 1.8', oth: '$ 0.01', totalFreightCost: '$ 15.78', costAdj: '-', newCost: '$ 15.78'
-    },
-    { volume: '9.0', adv: '1.8', pps: '1.0', weightPiece: '13.89', avgCube: '0.99', avgCubeFactor: '0.91', puDens: '2.78', dlDens: '5.78', pu: '$ 5.9', ls: '$ 0.51', cs: '$ 2.71', ar: '$ 0.56', jf: '$ 2.3', gf: '$ 1.75', br: '$ 0.0', pd: '$ 1.67', dl: '$ 4.14', no: '$ 2.5', oth: '$ 0.0', totalFreightCost: '$ 22.05', costAdj: '-', newCost: '$ 22.05' },
-    {
-      serviceLabel: 'N-3 Day Select',
-      volume: '22100.0', adv: '85.0', pps: '3.40', weightPiece: '76.5', avgCube: '1.12', avgCubeFactor: '1.05', puDens: '13.39',
-      dlDens: '1.84', pu: '$ 1.53', ls: '$ 0.47', cs: '$ 2.09', ar: '$ 0.25', jf: '$ 1.08', gf: '$ 1.62', br: '$ 0.0', pd: '$ 1.51', dl: '$ 3.14', no: '$ 1.93', oth: '$ 0.01', totalFreightCost: '$ 13.62', costAdj: '-', newCost: '$ 13.62'
-    },
-    { volume: '20953.0', adv: '4190.6', pps: '1.0', weightPiece: '13.01', avgCube: '1.36', avgCubeFactor: '1.15', puDens: '117.72', dlDens: '1.3', pu: '$ 0.23', ls: '$ 0.51', cs: '$ 1.85', ar: '$ 0.0', jf: '$ 0.0', gf: '$ 2.78', br: '$ 0.0', pd: '$ 1.2', dl: '$ 4.0', no: '$ 1.37', oth: '$ 0.02', totalFreightCost: '$ 11.91', costAdj: '-', newCost: '$ 11.91' },
-    { volume: '62796.0', adv: '12559.2', pps: '1.0', weightPiece: '3.59', avgCube: '0.52', avgCubeFactor: '1.09', puDens: '3031.44', dlDens: '1.16', pu: '$ 0.07', ls: '$ 0.41', cs: '$ 1.24', ar: '$ 0.0', jf: '$ 0.0', gf: '$ 0.94', br: '$ 0.0', pd: '$ 0.96', dl: '$ 5.53', no: '$ 1.04', oth: '$ 0.0', totalFreightCost: '$ 10.19', costAdj: '-', newCost: '$ 10.19' },
-    { volume: '1497.0', adv: '299.4', pps: '1.0', weightPiece: '12.12', avgCube: '0.29', avgCubeFactor: '1.11', puDens: '3335.35', dlDens: '1.21', pu: '$ 0.07', ls: '$ 0.25', cs: '$ 0.88', ar: '$ 0.0', jf: '$ 0.0', gf: '$ 0.57', br: '$ 0.0', pd: '$ 0.8', dl: '$ 5.25', no: '$ 0.89', oth: '$ 0.0', totalFreightCost: '$ 8.69', costAdj: '-', newCost: '$ 8.69' }
-  ]);
-
-  /**
-   * Zones row hierarchy/labels, per the client's reference screenshot
-   * (Analyzer > Zones update) -- same scope and structure as the Cost
-   * Details update just above: only the 4 rows the screenshot shows
-   * (1DA/1DP/2DA/3DS) get a friendly serviceLabel and updated visible
-   * figures; the other 5 stay as plain Movement-Mode-Service rows.
-   *
-   * 1DA again gets a real package-type row (Residential, "FC, PP, RS,
-   * RTP, TP") showing "-" for its own figures, opening onto the same 6
-   * real zone rows (102/104/.../108, lane US) with the screenshot's own
-   * Volume/ADV/PPS/Weight-Piece figures (Volume and ADV both still sum
-   * back to 1DA's own 234/0.9). 1DP again gets two package rows
-   * (Commercial/Residential, "FC, PP, TP") shown collapsed with contents
-   * not visible in the screenshot, so left as leaves rather than
-   * inventing unseen zone data, matching Cost Details' and Charges' own
-   * precedent this round.
-   *
-   * Screenshot columns map to this table's own by meaning, not position
-   * (its Base Gross Rev/Base Net Rev/Base Disc aren't this table's
-   * column set) -- Base Gross Rev -> freightGrossSpent, Base Net Rev ->
-   * freightNetSpent, Base Disc -> freightDiscount. Freight RPP, Freight
-   * Profit and Freight OR aren't shown in the screenshot at all, so
-   * every touched row (1DA's own zone children included) keeps that
-   * service's pre-existing placeholder figures for those three columns
-   * unchanged.
-   */
-  DA.data.shippingProfileZone = withKeys([
-    {
-      serviceLabel: 'N-Next Day Air',
-      expanded: true,
-      volume: '234', adv: '0.9', pps: '1.0', weightPiece: '8.0',
-      freightGrossSpent: '$ 34,098.00', freightNetSpent: '$ 7,154.00', freightDiscount: '79.0%',
-      freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39',
-      children: [
-        {
-          movement: '', mode: '', service: '',
-          expanded: true,
-          pkgType: 'Residential', pkgParentLabel: 'N-Next Day Air', pkgCodes: 'FC, PP, RS, RTP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          freightGrossSpent: '-', freightNetSpent: '-', freightDiscount: '-', freightRpp: '-', freightProfit: '-', freightOr: '-',
-          children: [
-            { movement: '', mode: '', service: '', zone: '102', lane: 'US', volume: '52', adv: '0.2', pps: '1.0', weightPiece: '10.0', freightGrossSpent: '$ 3,334.00', freightNetSpent: '$ 1,073.00', freightDiscount: '67.8%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' },
-            { movement: '', mode: '', service: '', zone: '104', lane: 'US', volume: '52', adv: '0.2', pps: '1.0', weightPiece: '2.0', freightGrossSpent: '$ 4,921.00', freightNetSpent: '$ 1,073.00', freightDiscount: '78.2%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' },
-            { movement: '', mode: '', service: '', zone: '105', lane: 'US', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '2.0', freightGrossSpent: '$ 2,675.00', freightNetSpent: '$ 537.00', freightDiscount: '79.9%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' },
-            { movement: '', mode: '', service: '', zone: '106', lane: 'US', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '19.0', freightGrossSpent: '$ 7,004.00', freightNetSpent: '$ 1,352.00', freightDiscount: '80.7%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' },
-            { movement: '', mode: '', service: '', zone: '107', lane: 'US', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '16.0', freightGrossSpent: '$ 7,549.00', freightNetSpent: '$ 1,457.00', freightDiscount: '80.7%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' },
-            { movement: '', mode: '', service: '', zone: '108', lane: 'US', volume: '52', adv: '0.2', pps: '1.0', weightPiece: '5.5', freightGrossSpent: '$ 8,614.00', freightNetSpent: '$ 1,662.00', freightDiscount: '80.7%', freightRpp: '$ 86.50', freightProfit: '$ 34,511.69', freightOr: '0.39' }
-          ]
-        }
-      ]
-    },
-    { volume: '15', adv: '3', pps: '1', weightPiece: '14.87', freightGrossSpent: '$ 3,590.93', freightDiscount: '0.00%', freightRpp: '$ 239.40', freightNetSpent: '$ 3,590.93', freightProfit: '$ 2,865.14', freightOr: '0.20' },
-    {
-      serviceLabel: 'N-Next Day Air Saver',
-      expanded: true,
-      volume: '52', adv: '0.2', pps: '1.0', weightPiece: '15.0',
-      freightGrossSpent: '$ 11,806.00', freightNetSpent: '$ 2,420.00', freightDiscount: '79.5%',
-      freightRpp: '$ 64.86', freightProfit: '$ 2,413.15', freightOr: '0.45',
-      children: [
-        {
-          movement: '', mode: '', service: '',
-          pkgType: 'Commercial', pkgParentLabel: 'N-Next Day Air Saver', pkgCodes: 'FC, PP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          freightGrossSpent: '-', freightNetSpent: '-', freightDiscount: '-', freightRpp: '-', freightProfit: '-', freightOr: '-'
-        },
-        {
-          movement: '', mode: '', service: '',
-          pkgType: 'Residential', pkgParentLabel: 'N-Next Day Air Saver', pkgCodes: 'FC, PP, TP',
-          zone: '-', lane: '-',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          freightGrossSpent: '-', freightNetSpent: '-', freightDiscount: '-', freightRpp: '-', freightProfit: '-', freightOr: '-'
-        }
-      ]
-    },
-    {
-      serviceLabel: 'N-2nd Day Air',
-      volume: '26', adv: '0.1', pps: '1.0', weightPiece: '17.0',
-      freightGrossSpent: '$ 3,014.00', freightNetSpent: '$ 820.00', freightDiscount: '72.8%',
-      freightRpp: '$ 23.69', freightProfit: '$ 1,724.03', freightOr: '0.67'
-    },
-    { volume: '9', adv: '1.8', pps: '1', weightPiece: '13.89', freightGrossSpent: '$ 677.18', freightDiscount: '18.86%', freightRpp: '$ 61.05', freightNetSpent: '$ 549.49', freightProfit: '$ 351.08', freightOr: '0.36' },
-    {
-      serviceLabel: 'N-3 Day Select',
-      volume: '22100', adv: '85.0', pps: '3.4', weightPiece: '76.5',
-      freightGrossSpent: '$ 9,928,004.00', freightNetSpent: '$ 9,928,004.00', freightDiscount: '0.0%',
-      freightRpp: '$ 24.46', freightProfit: '$ 3,870.04', freightOr: '0.56'
-    },
-    { volume: '20953', adv: '4190.6', pps: '1', weightPiece: '13.01', freightGrossSpent: '$ 444,324.98', freightDiscount: '58.02%', freightRpp: '$ 8.90', freightNetSpent: '$ 186,522.07', freightProfit: '$ -63,128.55', freightOr: '1.34' },
-    { volume: '62796', adv: '12559.2', pps: '1', weightPiece: '3.59', freightGrossSpent: '$ 1,077,840.91', freightDiscount: '48.86%', freightRpp: '$ 8.78', freightNetSpent: '$ 551,247.59', freightProfit: '$ -88,456.19', freightOr: '1.16' },
-    { volume: '1497', adv: '299.4', pps: '1', weightPiece: '12.12', freightGrossSpent: '$ 21,525.93', freightDiscount: '37.83%', freightRpp: '$ 8.94', freightNetSpent: '$ 13,382.90', freightProfit: '$ 380.12', freightOr: '0.97' }
-  ]);
 
   /**
    * Analyzer > Charges' own Gross RPP / Net RPP / Profit / OR columns --
@@ -1114,103 +916,6 @@
     }
   ].map(withTotalMetrics);
 
-  /**
-   * Rows behind Analyzer > Weight & Cube: the same core services Services
-   * lists, opening onto the billable weight tiers behind each (derived via
-   * weightBreakdown, so a tier's figures always add back up to its
-   * service's) -- except N-Next Day Air and N-Next Day Air Saver, which
-   * carry a real `children` of their own instead, per the client's
-   * reference screenshot (Analyzer > Weight & Cube update).
-   *
-   * Same scope/precedent as the Cost Details, Zones and Charges updates:
-   * of the 5 rows the screenshot shows, only N-Next Day Air and N-Next Day
-   * Air Saver get the package-type middle tier (a "UPS <service> -Pkg
-   * <type>" row, superscript product/rate codes, showing "-" for its own
-   * figures -- real numbers surface one level deeper, on the row's own
-   * chevron). N-Next Day Air's package row (Residential, "FC, PP, RS,
-   * RTP, TP") opens onto 5 real billable-weight rows straight from the
-   * screenshot (Volume and ADV both sum back to the parent's 234/0.9).
-   * N-Next Day Air Saver's two package rows (Commercial/Residential,
-   * "FC, PP, TP") are shown collapsed with contents not visible, so left
-   * as leaves. N-2nd Day Air, N-3 Day Select and N-Ground get the
-   * screenshot's own visible figures and (N-3 Day Select/N-Ground) are
-   * new rows the table didn't carry before, but keep the table's existing
-   * generic weightBreakdown() split -- the screenshot doesn't show a
-   * package tier for any of them.
-   *
-   * Base RPP/Base Profit/Base OR aren't visible in the screenshot for any
-   * row (cut off past Base Gross Rev/Net Rev/Disc) or, for the two new
-   * rows, anywhere in this table before now -- N-Next Day Air, N-Next Day
-   * Air Saver and N-2nd Day Air (and, in turn, N-Next Day Air's own new
-   * billable-weight children) keep each row's own pre-existing
-   * placeholder figures for those three columns; N-3 Day Select and
-   * N-Ground reuse the same-named service's own figures already on file
-   * in DA.data.packetServices below, rather than inventing new ones.
-   */
-  DA.data.packetWeightCube = [
-    {
-      service: 'N-Next Day Air', billable: '-',
-      expanded: true,
-      volume: '234', adv: '0.9', pps: '1.0', weightPiece: '5.8',
-      baseGrossRev: '$34,098', baseNetRev: '$7,154', baseDisc: '79.0%',
-      baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50',
-      children: [
-        {
-          service: 'N-Next Day Air', billable: '-',
-          expanded: true,
-          pkgType: 'Residential', pkgCodes: 'FC, PP, RS, RTP, TP',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          baseGrossRev: '-', baseNetRev: '-', baseDisc: '-', baseRpp: '-', baseProfit: '-', baseOr: '-',
-          children: [
-            { service: '', billable: '2', volume: '104', adv: '0.4', pps: '1.0', weightPiece: '1.0', baseGrossRev: '$11,012', baseNetRev: '$2,269', baseDisc: '79.4%', baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50' },
-            { service: '', billable: '9', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '9.0', baseGrossRev: '$5,199', baseNetRev: '$1,003', baseDisc: '80.7%', baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50' },
-            { service: '', billable: '10', volume: '52', adv: '0.2', pps: '1.0', weightPiece: '9.5', baseGrossRev: '$3,334', baseNetRev: '$1,073', baseDisc: '67.8%', baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50' },
-            { service: '', billable: '16', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '15.0', baseGrossRev: '$7,549', baseNetRev: '$1,457', baseDisc: '80.7%', baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50' },
-            { service: '', billable: '19', volume: '26', adv: '0.1', pps: '1.0', weightPiece: '5.0', baseGrossRev: '$7,004', baseNetRev: '$1,352', baseDisc: '80.7%', baseRpp: '$32.85', baseProfit: '$5,037', baseOr: '0.50' }
-          ]
-        }
-      ]
-    },
-    {
-      service: 'N-Next Day Air Saver', billable: '-',
-      expanded: true,
-      volume: '52', adv: '0.2', pps: '1.0', weightPiece: '10.0',
-      baseGrossRev: '$11,806', baseNetRev: '$2,420', baseDisc: '79.5%',
-      baseRpp: '$11.98', baseProfit: '$0', baseOr: '0.99',
-      children: [
-        {
-          service: 'N-Next Day Air Saver', billable: '-',
-          pkgType: 'Commercial', pkgCodes: 'FC, PP, TP',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          baseGrossRev: '-', baseNetRev: '-', baseDisc: '-', baseRpp: '-', baseProfit: '-', baseOr: '-'
-        },
-        {
-          service: 'N-Next Day Air Saver', billable: '-',
-          pkgType: 'Residential', pkgCodes: 'FC, PP, TP',
-          volume: '-', adv: '-', pps: '-', weightPiece: '-',
-          baseGrossRev: '-', baseNetRev: '-', baseDisc: '-', baseRpp: '-', baseProfit: '-', baseOr: '-'
-        }
-      ]
-    },
-    {
-      service: 'N-2nd Day Air', billable: '-',
-      volume: '26', adv: '0.1', pps: '1.0', weightPiece: '15.0',
-      baseGrossRev: '$3,014', baseNetRev: '$820', baseDisc: '72.8%',
-      baseRpp: '$19.68', baseProfit: '$ -341', baseOr: '0.52'
-    },
-    {
-      service: 'N-3 Day Select', billable: '-',
-      volume: '22100', adv: '85.0', pps: '3.4', weightPiece: '368.5',
-      baseGrossRev: '$9,928,004', baseNetRev: '$9,928,004', baseDisc: '0.0%',
-      baseRpp: '$19.18', baseProfit: '$2,046', baseOr: '0.86'
-    },
-    {
-      service: 'N-Ground', billable: '-',
-      volume: '1716', adv: '6.6', pps: '1.0', weightPiece: '153.3',
-      baseGrossRev: '$240,236', baseNetRev: '$236,326', baseDisc: '1.6%',
-      baseRpp: '$8.83', baseProfit: '$18,213', baseOr: '0.86'
-    }
-  ];
 
   /** Parses one of this file's own formatted figures ("$407,142", "79.7%",
       "0.52", "$ -341") into a plain number plus the prefix/suffix/decimal
@@ -1324,6 +1029,77 @@
   // Domestic Ground, then the Export lanes, rather than transcription
   // order (which opened on N-2nd Day Air).
   ].sort(byCoreServiceRow).map(withTotalMetrics);
+
+  /* ---- Shipping-profile tables, from the shared core-service list ------- */
+
+  /**
+   * Cost Details, Zones and Weight & Cube list the exact same core
+   * services as the Services tab, in the same order -- one row per
+   * DA.data.packetServices entry (already sorted into the client's
+   * hierarchy), mapped into each tab's own column set. Figures that line
+   * up with a Services figure are carried across; the rest are plausible
+   * dummy values, varied a little per row so a column doesn't read as a
+   * flat repeat. Rows are leaves (children: []), so no per-service zone /
+   * package drill-down -- the point is the shared, ordered list.
+   */
+  function figNum(raw) {
+    var m = parseFigureNumber(raw);
+    return m ? m.number : 0;
+  }
+  function money2(n) { return '$ ' + n.toFixed(2); }
+  function dec(n, places) { return n.toFixed(places == null ? 2 : places); }
+
+  var CORE_SERVICE_ROWS = DA.data.packetServices.map(function (r, i) {
+    var rpp = figNum(r.baseRpp); // stands in as freight cost per piece
+    return {
+      label: r.service,
+      volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.billableWt,
+      baseGrossRev: r.baseGrossRev, baseNetRev: r.baseNetRev,
+      disc: r.disc, baseRpp: r.baseRpp, baseProfit: r.baseProfit, baseOr: r.baseOr,
+      // Cost Details' own columns -- no Services counterpart, so cost
+      // components are fixed fractions of the row's own rate and the
+      // cube/density figures a small per-row wobble off a base value.
+      avgCube: dec(1.05 + (i % 5) * 0.14),
+      avgCubeFactor: dec(0.92 + (i % 4) * 0.11),
+      puDens: dec(1.6 + (i % 6) * 0.45, 1),
+      dlDens: dec(1.3 + (i % 3) * 0.5),
+      pu: money2(rpp * 0.07), ls: money2(rpp * 0.02), cs: money2(rpp * 0.11),
+      ar: money2(rpp * 0.10), jf: money2(rpp * 0.19), gf: money2(rpp * 0.07),
+      br: '$ 0.0', pd: money2(rpp * 0.09), dl: money2(rpp * 0.24),
+      no: money2(rpp * 0.11), oth: '$ 0.0',
+      totalFreightCost: money2(rpp), costAdj: '-', newCost: money2(rpp)
+    };
+  });
+
+  DA.data.shippingProfileCost = CORE_SERVICE_ROWS.map(function (r) {
+    return {
+      serviceLabel: r.label, zone: '-', lane: '-', children: [],
+      volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
+      avgCube: r.avgCube, avgCubeFactor: r.avgCubeFactor, puDens: r.puDens, dlDens: r.dlDens,
+      pu: r.pu, ls: r.ls, cs: r.cs, ar: r.ar, jf: r.jf, gf: r.gf, br: r.br,
+      pd: r.pd, dl: r.dl, no: r.no, oth: r.oth,
+      totalFreightCost: r.totalFreightCost, costAdj: r.costAdj, newCost: r.newCost
+    };
+  });
+
+  DA.data.shippingProfileZone = CORE_SERVICE_ROWS.map(function (r) {
+    return {
+      serviceLabel: r.label, zone: '-', lane: '-', children: [],
+      volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
+      freightGrossSpent: r.baseGrossRev, freightNetSpent: r.baseNetRev,
+      freightDiscount: r.disc, freightRpp: r.baseRpp,
+      freightProfit: r.baseProfit, freightOr: r.baseOr
+    };
+  });
+
+  DA.data.packetWeightCube = CORE_SERVICE_ROWS.map(function (r) {
+    return {
+      service: r.label, billable: '-', children: [],
+      volume: r.volume, adv: r.adv, pps: r.pps, weightPiece: r.weightPiece,
+      baseGrossRev: r.baseGrossRev, baseNetRev: r.baseNetRev, baseDisc: r.disc,
+      baseRpp: r.baseRpp, baseProfit: r.baseProfit, baseOr: r.baseOr
+    };
+  });
 
   /**
    * Rate Charts' Net-basis grid: a $ rate per zone/weight-tier cell, the same
