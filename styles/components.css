@@ -1018,9 +1018,14 @@
   border-right: 1px solid var(--color-border-subtle);
 }
 
+/* No divider after the last column, but keep the same right gutter every
+   other column has -- its right-aligned text would otherwise sit flush
+   against the cell edge, which is exactly where the hover column-outline
+   (.comparison-cards__col-outline) draws its right border, leaving no
+   gap between the Profit figures and the ring around them. */
 .comparison-cards__header-cell:last-child,
 .comparison-card__field:last-child {
-  padding-right: 0;
+  padding-right: var(--space-3);
   border-right: none;
 }
 
