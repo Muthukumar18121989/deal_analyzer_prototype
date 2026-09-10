@@ -101,29 +101,27 @@
         { key: 'construct', label: 'Construct', width: '110px', className: 'is-plain' }
       ];
 
-      if (scenario.editable) {
-        columns.push({
-          key: 'accountAssociation',
-          label: 'Account Association',
-          width: '190px',
-          render: function (bid) {
-            if (!bid.selectable) return el('span');
-            return el('a', {
-              className: 'link-with-icon',
-              attrs: {
-                href: '#accounts-' + bid.bidNumber,
-                'aria-label': 'Accounts associated with bid ' + bid.bidNumber
-              },
-              on: {
-                click: function (event) {
-                  event.preventDefault();
-                  if (context.onOpenAccounts) context.onOpenAccounts(bid, scenario);
-                }
+      columns.push({
+        key: 'accountAssociation',
+        label: 'Account Association',
+        width: '190px',
+        render: function (bid) {
+          if (!bid.selectable) return el('span');
+          return el('a', {
+            className: 'link-with-icon',
+            attrs: {
+              href: '#accounts-' + bid.bidNumber,
+              'aria-label': 'Accounts associated with bid ' + bid.bidNumber
+            },
+            on: {
+              click: function (event) {
+                event.preventDefault();
+                if (context.onOpenAccounts) context.onOpenAccounts(bid, scenario);
               }
-            }, [el('span', { text: 'Accounts' }), DA.icons.settings(14)]);
-          }
-        });
-      }
+            }
+          }, [el('span', { text: 'Accounts' }), DA.icons.settings(14)]);
+        }
+      });
 
       return columns;
     }
@@ -149,7 +147,7 @@
           // Every bid's Structure Details reads from the same shared source
           // set (see scenarioBids.js) -- a simulated one is no different.
           var sharedSource = DA.data.scenarioBids[0] && DA.data.scenarioBids[0].serviceSource;
-          scenario.bids.push({
+          var newBid = {
             bidNumber: bidNumberField.input.value,
             bidName: bidNameField.input.value,
             shippingProfile: 'S' + scenario.number + '-UPS-PLD-' + (scenario.bids.length + 1),
@@ -157,7 +155,15 @@
             selectable: true,
             selected: true,
             serviceSource: sharedSource
-          });
+          };
+          // Non-incented revenue is always included and always last, so a
+          // simulated bid is inserted ahead of it rather than appended.
+          var nonIncentedIndex = scenario.bids.findIndex(function (bid) { return !bid.selectable; });
+          if (nonIncentedIndex === -1) {
+            scenario.bids.push(newBid);
+          } else {
+            scenario.bids.splice(nonIncentedIndex, 0, newBid);
+          }
           drawer.close();
           renderCard();
         }

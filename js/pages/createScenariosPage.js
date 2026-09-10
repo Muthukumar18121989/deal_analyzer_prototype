@@ -38,6 +38,7 @@
     function flatSummary() {
       return C.SummaryPanelFlat({
         ariaLabel: 'Analyzer packet summary',
+        expanded: false,
         headline: [
           { label: 'Analyzer Packet ID', value: packet.packetId },
           { label: 'Customer Name', value: packet.customerName },
@@ -125,6 +126,7 @@
     function groupedSummary() {
       return C.SummaryPanel({
         ariaLabel: 'Analyzer packet summary',
+        expanded: false,
         headline: [
           { label: 'Analyzer Packet ID', value: packet.packetId },
           { label: 'Customer Name', value: packet.customerName },
@@ -171,6 +173,7 @@
       return C.SummaryPanel({
         ariaLabel: 'Analyzer packet summary',
         chevronPosition: 'end',
+        expanded: false,
         headline: [
           { label: 'Analyzer Packet ID', value: packet.packetId },
           { label: 'Customer Name', value: packet.customerName },

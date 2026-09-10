@@ -36,7 +36,7 @@
 }
 
 .app-header__title {
-  font-size: var(--font-size-xl);
+  font-size: calc(var(--font-size-xl) + 2px);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-tight);
   letter-spacing: var(--letter-spacing-tight);
