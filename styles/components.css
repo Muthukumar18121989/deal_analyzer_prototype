@@ -1302,6 +1302,17 @@
   opacity: 1;
 }
 
+/*
+ * On focus the placeholder copy of the label steps out of the way, so the
+ * user types into a clean box rather than over greyed-out text -- the
+ * always-visible .field__label above still names the field. Matches
+ * ChipInput's own focus behaviour (syncLabel() clears its entry
+ * placeholder the same way), which this field was inconsistent with.
+ */
+.field__input:focus::placeholder {
+  color: transparent;
+}
+
 .field__input:hover {
   border-color: var(--color-field-border-hover);
 }
