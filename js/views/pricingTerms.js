@@ -359,11 +359,11 @@
         headerTone: 'warm',
         columns: [
           {
-            // Plain value, not a link -- the "#zone-detail" href went
-            // nowhere and the underline/teal read as a hyperlink.
-            // is-plain keeps it dark like a normal cell instead of the
-            // table's default teal.
-            key: 'zone', label: 'Zone', width: '160px', className: 'is-plain'
+            // Plain text, not a link -- the "#zone-detail" href went
+            // nowhere and the <a>'s underline read as a hyperlink. No
+            // is-plain: the value keeps the table's default teal, just
+            // without that underline.
+            key: 'zone', label: 'Zone', width: '160px'
           },
           { key: 'adv', label: 'ADV', width: '160px', className: 'is-numeric is-end', headerClassName: 'is-end' },
           {
