@@ -26,10 +26,12 @@
   }
 
   /**
-   * @param {Object} row  the Dim Divisor table row whose Structure Details
-   *                      link was clicked -- carries the divisor code shown
+   * @param {Object} row      the Dim Divisor table row whose Structure
+   *                          Details link was clicked -- carries the
+   *                          divisor code shown
+   * @param {Element} trigger the link to hand focus back to on close
    */
-  DA.dialogs.DimDivisorDetailsDialog = function DimDivisorDetailsDialog(row) {
+  DA.dialogs.DimDivisorDetailsDialog = function DimDivisorDetailsDialog(row, trigger) {
     var C = DA.components;
 
     var grid = el('table', { className: 'matrix' }, [
@@ -102,8 +104,9 @@
     ]);
 
     var modal = C.Modal({
-      titleRule: true,
+      variant: 'drawer',
       title: 'Details',
+      returnFocusTo: trigger,
       body: body
     });
 

@@ -1786,7 +1786,7 @@
                       on: {
                         click: function (event) {
                           event.preventDefault();
-                          DA.dialogs.DimDivisorDetailsDialog(row).open();
+                          DA.dialogs.DimDivisorDetailsDialog(row, event.currentTarget).open();
                         }
                       }
                     }, [el('span', { text: 'Structure Details' }), DA.icons.chevronRight(14, '')]);
