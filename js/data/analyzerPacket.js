@@ -184,6 +184,99 @@
   }
 
   /**
+   * Canonical core-service order the client specified: by movement
+   * (Domestic / Export / Import -- the N- / E- / I- label prefix), then
+   * mode (Air before Ground), then a fixed service sequence within each.
+   * coreServiceRank() turns any core-service label into a sortable number
+   * so every list of these rows -- the Comparisons summary tree and the
+   * Analyzer > Services table -- reads in the same hierarchy rather than
+   * whatever order the figures were transcribed in. A service the client
+   * didn't name sorts to the end of its own movement, in its original
+   * order (Array.prototype.sort is stable).
+   *
+   * Air ranks 1-49, Ground 50-99; the more specific label wins, so the
+   * regex list is ordered longest-match-first ("next day air saver"
+   * before "next day air", "worldwide express saver"/"...freight midday"
+   * before the bare "worldwide express" catch-all).
+   */
+  var CORE_SERVICE_RANKS = [
+    // Domestic Air (shared sequence with international Air below)
+    [/next day air early/, 1],
+    [/next day air saver/, 3],
+    [/next day air/, 2],
+    [/2nd day air\s*a\.?\s*m\.?/, 4],
+    [/2nd day air/, 5],
+    [/3 day select/, 6],
+    // International Air
+    [/worldwide express freight midday/, 14],
+    [/worldwide express freight/, 15],
+    [/worldwide express midday/, 14],
+    [/worldwide express saver/, 12],
+    [/worldwide express plus/, 18],
+    [/worldwide express/, 11],
+    [/worldwide saver/, 13],
+    [/worldwide expedited/, 16],
+    [/worldwide economy ddp/, 20],
+    [/worldwide economy ddu/, 21],
+    [/import express saver/, 23],
+    [/import express/, 22],
+    // Domestic Ground
+    [/ground saver/, 52],
+    [/surepost 1 lb|surepost.*over/, 53],
+    [/surepost under 1|surepost.*(under|less)/, 54],
+    [/ground/, 51],
+    // International Ground
+    [/standard (to|from) canada/, 60],
+    [/standard (to|from) mexico/, 61],
+    [/standard/, 62]
+  ];
+
+  var MOVEMENT_RANK = { N: 0, E: 1, I: 2 };
+
+  function coreServiceRank(label) {
+    var s = String(label == null ? '' : label).trim();
+    var movement = 3;
+    var prefix = /^([NEI])-\s*/.exec(s);
+    if (prefix) {
+      movement = MOVEMENT_RANK[prefix[1]];
+      s = s.slice(prefix[0].length);
+    }
+    var lower = s.toLowerCase();
+    for (var i = 0; i < CORE_SERVICE_RANKS.length; i++) {
+      if (CORE_SERVICE_RANKS[i][0].test(lower)) {
+        return movement * 1000 + CORE_SERVICE_RANKS[i][1];
+      }
+    }
+    return movement * 1000 + 900;
+  }
+
+  /** A row's core-service label, from whichever key it uses -- `label` in
+      the summary tree, `service` / `serviceLabel` in the Analyzer tables. */
+  function coreServiceLabelOf(row) {
+    return row.label || row.serviceLabel || row.service || '';
+  }
+
+  function isSubtotalRow(row) {
+    return /^(sub-?total|total)$/i.test(String(coreServiceLabelOf(row)).trim());
+  }
+
+  /** Comparator: orders two core-service rows by coreServiceRank(). */
+  function byCoreServiceRow(a, b) {
+    return coreServiceRank(coreServiceLabelOf(a)) - coreServiceRank(coreServiceLabelOf(b));
+  }
+
+  /** Sorts core-service rows by coreServiceRank(), keeping any Sub-total /
+      Total row pinned at the top of its group. */
+  function sortByCoreService(rows) {
+    var pinned = rows.filter(isSubtotalRow);
+    var rest = rows.filter(function (r) { return !isSubtotalRow(r); });
+    rest.sort(byCoreServiceRow);
+    return pinned.concat(rest);
+  }
+
+  DA.data.coreServiceRank = coreServiceRank;
+
+  /**
    * Analyzer > Comparisons row hierarchy, as of the row-header/hierarchy-only
    * update: Total, an Unincented PLD group (broken out by individual
    * service/lane), and a Hormel 2024 group (its own Sub-total, no further
@@ -205,7 +298,7 @@
    * everywhere at once.
    */
   function comparisonSummaryTree() {
-    return [
+    var tree = [
       { label: 'Total', total: true, adv: '198.8', baseFrt: '0.1%', totalDisc: '0.0%', rpp: '$ 2,859.09', annRev: '$ 147,780,476', or: '0.98', profit: '$ 2,955,610' },
       {
         label: 'Unincented PLD',
@@ -238,6 +331,15 @@
         ]
       }
     ];
+    // Each group's own lanes read in the client's core-service hierarchy
+    // (Domestic then Export then Import, Air before Ground, fixed order
+    // within) rather than transcription order -- Sub-total stays pinned
+    // at the top of its group. scaledSummaryTree() below preserves this
+    // order for the Scenario 1 panel.
+    tree.forEach(function (row) {
+      if (row.children) row.children = sortByCoreService(row.children);
+    });
+    return tree;
   }
 
   DA.data.packetSummaryTrees = {
@@ -1214,7 +1316,11 @@
     { service: 'E-Import Express Saver', volume: '7', adv: '0.1', avgZone: '481.0', billableWt: '7.5', pps: '1.0', baseGrossRev: '$2,690', baseNetRev: '$1,412', disc: '47.5%', baseRpp: '$201.71', baseProfit: '$780', baseOr: '0.45' },
     { service: 'E-Worldwide Express Freight', volume: '3', adv: '0.0', avgZone: '512.0', billableWt: '412.0', pps: '1.0', baseGrossRev: '$8,940', baseNetRev: '$5,203', disc: '41.8%', baseRpp: '$1,734.33', baseProfit: '$2,014', baseOr: '0.61' },
     { service: 'E-Worldwide Express Freight Midday', volume: '2', adv: '0.0', avgZone: '512.0', billableWt: '398.0', pps: '1.0', baseGrossRev: '$6,214', baseNetRev: '$3,618', disc: '41.8%', baseRpp: '$1,809.00', baseProfit: '$1,402', baseOr: '0.61' }
-  ].map(withTotalMetrics);
+  // Same core-service hierarchy the Comparisons tree uses -- Domestic Air
+  // (Next Day Air Early/Air/Saver, 2nd Day A.M./Air, 3 Day Select) then
+  // Domestic Ground, then the Export lanes, rather than transcription
+  // order (which opened on N-2nd Day Air).
+  ].sort(byCoreServiceRow).map(withTotalMetrics);
 
   /**
    * Rate Charts' Net-basis grid: a $ rate per zone/weight-tier cell, the same
