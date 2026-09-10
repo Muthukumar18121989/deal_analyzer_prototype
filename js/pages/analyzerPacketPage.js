@@ -1534,7 +1534,10 @@
           el('div', { className: 'view-filters__field' }, [
             C.SelectField({
               label: 'Choose Scenario',
-              value: scenarios[0] && scenarios[0].name,
+              // Opens on the newest scenario (Scenario 1 when one has been
+              // added, else the baseline Current), same default Pricing
+              // Terms' own pricingFilters() uses.
+              value: scenarios[scenarios.length - 1] && scenarios[scenarios.length - 1].name,
               options: scenarios.map(function (scenario) {
                 return { value: scenario.name, label: scenario.name };
               })
