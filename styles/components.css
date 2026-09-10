@@ -4235,6 +4235,11 @@
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   text-align: center;
+  /* A seam under the "Zone Reference: Daily" bar so it reads as its own
+     band rather than floating loose above the header row beneath it --
+     the same light-on-dark hairline every divider in these dark headers
+     uses. */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .matrix {

@@ -12,6 +12,17 @@
 
   DA.views = DA.views || {};
 
+  // The "Update Analyzer Packet" pill at the bottom of every Pricing Terms
+  // sub-tab starts disabled; editing any value on the tab (clicking any
+  // editableCell pencil) enables the one currently on screen. updatePacketCta()
+  // registers its button here; armUpdatePacketCta() flips it on.
+  var latestUpdateCta = null;
+  function armUpdatePacketCta() {
+    if (!latestUpdateCta) return;
+    latestUpdateCta.disabled = false;
+    latestUpdateCta.removeAttribute('disabled');
+  }
+
   function editableCell(value, options) {
     options = options || {};
     return el('span', { className: 'cell-value' }, [
@@ -23,7 +34,8 @@
         ? null
         : el('button', {
             className: 'icon-action u-tap-target',
-            attrs: { type: 'button', 'aria-label': 'Edit ' + value }
+            attrs: { type: 'button', 'aria-label': 'Edit ' + value },
+            on: { click: armUpdatePacketCta }
           }, [DA.icons.pencil(13)])
     ]);
   }
@@ -50,16 +62,18 @@
    */
   function updatePacketCta() {
     var C = DA.components;
-    return el('div', { className: 'page-actions page-actions--wide' }, [
-      C.Button({
-        label: 'Update Analyzer Packet',
-        variant: 'primary',
-        shape: 'pill',
-        icon: DA.icons.chevronRight(14, ''),
-        iconPosition: 'end',
-        disabled: true
-      })
-    ]);
+    var button = C.Button({
+      label: 'Update Analyzer Packet',
+      variant: 'primary',
+      shape: 'pill',
+      icon: DA.icons.chevronRight(14, ''),
+      iconPosition: 'end',
+      disabled: true
+    });
+    // The most recently rendered CTA is the one armUpdatePacketCta()
+    // enables when a value on this tab is edited.
+    latestUpdateCta = button;
+    return el('div', { className: 'page-actions page-actions--wide' }, [button]);
   }
 
   /* ---- Tier Incentives ---------------------------------------------------- */
@@ -381,13 +395,15 @@
   /**
    * Custom Net Rate: the same matrix shape Cell-by-cell uses, but keyed by
    * a single billable weight per row (not a from/to band) against
-   * rateZones' full 10-zone set, and every cell is a flat $ figure -- set
-   * by uploading a template, not edited cell by cell, so no pencil icons.
+   * rateZones' full 10-zone set, every cell a flat $ figure. Values can
+   * be bulk-set from a template or edited in place -- each carries an
+   * edit pencil like the other rate grids. matrix--sticky-head keeps the
+   * zone-number header row in view while the body scrolls.
    */
   function customNetRateGrid() {
     var zones = DA.data.rateZones;
 
-    var grid = el('table', { className: 'matrix' }, [
+    var grid = el('table', { className: 'matrix matrix--sticky-head' }, [
       el('caption', { className: 'u-visually-hidden', text: 'Custom net rate by weight and zone' }),
       el('thead', {}, [
         el('tr', {}, [
@@ -406,7 +422,7 @@
         return el('tr', {}, [
           el('th', { className: 'matrix__rowhead', attrs: { scope: 'row' }, text: row.weight })
         ].concat(zones.map(function (zone) {
-          return el('td', { className: 'matrix__cell' }, [el('span', { text: row.rates[zone] })]);
+          return el('td', { className: 'matrix__cell' }, [editableCell(row.rates[zone])]);
         })));
       }))
     ]);
