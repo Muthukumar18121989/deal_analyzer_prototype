@@ -953,16 +953,15 @@
   /* ---- Accessorials -------------------------------------------------------- */
 
   /**
-   * An accessorial's incentive plan: Movement / Mode / Service Group / Core
-   * Service as four separate label columns (restored from the earlier
-   * single combined "N-Next Day Air Early" column, per the client's own
-   * hierarchy reference screenshots showing all four side by side) plus
-   * ADU / NRPP / Incentive Type / Incentive Amount, matching that
-   * reference's own column order exactly. `node` is the tree leaf this
-   * plan opened from (see planPicker/planNode/planSidebar, all of which
-   * now pass their leaf's original node through) -- its own `incentives`
-   * rows render here, falling back to the old shared table only if a leaf
-   * somehow has none.
+   * An accessorial's incentive plan: one Core Service column (the
+   * movement's N / E / I code plus the service name, same shape Cost
+   * Details / Zones / Weight & Cube use) then ADU / NRPP / Incentive Type
+   * / Incentive Amount. The Movement / Mode / Service Group breakout that
+   * sat ahead of it was folded back into this one label, per the client.
+   * `node` is the tree leaf this plan opened from (see planPicker/
+   * planNode/planSidebar, all of which pass their leaf's original node
+   * through) -- its own `incentives` rows render here, falling back to
+   * the old shared table only if a leaf somehow has none.
    */
   function accessorialPlan(node) {
     var C = DA.components;
@@ -978,15 +977,6 @@
       };
     }
 
-    // Movement/Mode/Service Group/Core Service are all leading identifier
-    // columns, none of them the row's editable figures -- is-rowhead on
-    // all four, the same treatment Analyzer > Charges' own Accessorial
-    // Type/Group/Detail triple uses (labelColumn() in analyzerPacketPage.js),
-    // so none of the four pick up the app-wide teal a plain data cell gets.
-    function labelColumn(key, label, width) {
-      return { key: key, label: label, width: width, className: 'is-rowhead' };
-    }
-
     return el('div', { className: 'card' }, [
       C.DataTable({
         caption: 'Accessorial incentive plan',
@@ -994,17 +984,27 @@
         scrollable: true,
         headerTone: 'warm',
         tinted: true,
-        // Movement/Mode/Service Group/Core Service together identify the
-        // row -- frozen as a group during horizontal scroll, the same
-        // treatment every other multi-column row-header group in the app
-        // gets (Analyzer > Charges' Accessorial Type/Group/Detail,
-        // Accounts' Parent/Sub Parent/Account Number).
-        freezeColumns: 4,
+        // Core Service is the row's own identifier -- frozen on its own
+        // during horizontal scroll, like every other table's row-header
+        // column.
+        freezeColumns: 1,
         columns: [
-          labelColumn('movement', 'Movement', '130px'),
-          labelColumn('mode', 'Mode', '110px'),
-          labelColumn('serviceGroup', 'Service Group', '140px'),
-          labelColumn('service', 'Core Service', '200px'),
+          {
+            key: 'coreService',
+            label: 'Core Service',
+            width: '220px',
+            className: 'is-rowhead',
+            // Movement's own N / E / I code (Domestic / Export / Import)
+            // plus the service name -- the "N-Next Day Air Early" shape
+            // Cost Details' own Core Service column already uses.
+            render: function (row) {
+              var prefix = row.movement === 'Domestic' ? 'N'
+                : row.movement === 'Export' ? 'E'
+                : row.movement === 'Import' ? 'I'
+                : row.movement;
+              return prefix + '-' + row.service;
+            }
+          },
           {
             key: 'adu', label: 'ADU', width: '90px',
             className: 'is-numeric is-end', headerClassName: 'is-end'
