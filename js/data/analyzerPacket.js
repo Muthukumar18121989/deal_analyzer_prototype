@@ -220,10 +220,13 @@
     [/worldwide economy ddu/, 21],
     [/import express saver/, 23],
     [/import express/, 22],
-    // Domestic Ground
+    // Domestic Ground -- the two weight-split Ground Saver rows sit right
+    // after the plain one, heavier band first (> 1lb before < 1lb). Old
+    // "SurePost 1 lb & Over" / "SurePost Under 1 lb" labels map to the
+    // same two slots in case any other list still uses them.
+    [/ground saver.*(>|over)|surepost.*(1 lb|over)/, 53],
+    [/ground saver.*(<|under)|surepost.*(under|less)/, 54],
     [/ground saver/, 52],
-    [/surepost 1 lb|surepost.*over/, 53],
-    [/surepost under 1|surepost.*(under|less)/, 54],
     [/ground/, 51],
     // International Ground
     [/standard (to|from) canada/, 60],
@@ -1302,8 +1305,8 @@
     { service: 'N-2nd Day Air A.M.', volume: '186', adv: '2.9', avgZone: '245.0', billableWt: '21.2', pps: '1.0', baseGrossRev: '$27,830', baseNetRev: '$16,984', disc: '39.0%', baseRpp: '$91.31', baseProfit: '$6,412', baseOr: '0.62' },
     { service: 'N-Next Day Air Early', volume: '54', adv: '0.8', avgZone: '105.0', billableWt: '9.6', pps: '1.0', baseGrossRev: '$9,845', baseNetRev: '$5,712', disc: '42.0%', baseRpp: '$105.78', baseProfit: '$2,014', baseOr: '0.65' },
     { service: 'N-Ground Saver', volume: '3812', adv: '58.6', avgZone: '5.4', billableWt: '4.1', pps: '1.0', baseGrossRev: '$41,230', baseNetRev: '$28,842', disc: '30.1%', baseRpp: '$7.57', baseProfit: '$2,105', baseOr: '0.93' },
-    { service: 'N-SurePost Under 1 lb', volume: '2960', adv: '45.5', avgZone: '4.9', billableWt: '0.9', pps: '1.0', baseGrossRev: '$12,470', baseNetRev: '$8,724', disc: '30.0%', baseRpp: '$2.95', baseProfit: '$ -612', baseOr: '1.07' },
-    { service: 'N-SurePost 1 lb & Over', volume: '1548', adv: '23.8', avgZone: '5.2', billableWt: '2.6', pps: '1.0', baseGrossRev: '$18,920', baseNetRev: '$13,244', disc: '30.0%', baseRpp: '$8.55', baseProfit: '$890', baseOr: '0.93' },
+    { service: 'N-Ground Saver > 1lb', volume: '1548', adv: '23.8', avgZone: '5.2', billableWt: '2.6', pps: '1.0', baseGrossRev: '$18,920', baseNetRev: '$13,244', disc: '30.0%', baseRpp: '$8.55', baseProfit: '$890', baseOr: '0.93' },
+    { service: 'N-Ground Saver < 1lb', volume: '2960', adv: '45.5', avgZone: '4.9', billableWt: '0.9', pps: '1.0', baseGrossRev: '$12,470', baseNetRev: '$8,724', disc: '30.0%', baseRpp: '$2.95', baseProfit: '$ -612', baseOr: '1.07' },
     { service: 'E-Worldwide Expedited', volume: '4', adv: '0.0', avgZone: '71.0', billableWt: '7.0', pps: '1.0', baseGrossRev: '$697', baseNetRev: '$334', disc: '52.1%', baseRpp: '$83.44', baseProfit: '$233', baseOr: '0.30' },
     { service: 'E-Worldwide Express Saver', volume: '4', adv: '0.0', avgZone: '481.0', billableWt: '10.0', pps: '1.0', baseGrossRev: '$787', baseNetRev: '$326', disc: '58.5%', baseRpp: '$81.61', baseProfit: '$213', baseOr: '0.35' },
     { service: 'E-Worldwide Express', volume: '62', adv: '0.5', avgZone: '512.0', billableWt: '9.4', pps: '1.0', baseGrossRev: '$18,940', baseNetRev: '$9,845', disc: '48.0%', baseRpp: '$158.79', baseProfit: '$6,102', baseOr: '0.38' },
