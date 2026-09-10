@@ -1290,6 +1290,13 @@
   opacity: 1;
 }
 
+/* The floating label above already carries the field's name once focused,
+   so the placeholder steps aside instead of doubling it -- the same
+   focus behaviour ChipInput's entry already gives Enter Parent. */
+.field__input:focus::placeholder {
+  opacity: 0;
+}
+
 .field__input:hover {
   border-color: var(--color-field-border-hover);
 }
