@@ -399,7 +399,7 @@
 
       // Every column's own cell list is complete once every row has been
       // built above, so the hover wiring happens last.
-      columnCells.forEach(function (cells) {
+      columnCells.forEach(function (cells, columnIndex) {
         cells.forEach(function (cell) {
           cell.addEventListener('mouseenter', function () {
             // Relative to the layer's own box, not wrap's -- wrap carries
@@ -452,9 +452,17 @@
             // the column's own divider) so the rounded border reads as a
             // ring around the header/value text with some breathing room,
             // rather than a box clipped tight against it.
+            //
+            // The rightmost column is the one exception: it has no divider
+            // (padding-right: 0, border-right: none, per
+            // .comparison-cards__header-cell:last-child) to give its own
+            // right-aligned text clearance from the box edge the ring
+            // hugs, so without an explicit pad here the ring's right edge
+            // lands directly on top of that text instead of around it.
             var outlinePadY = 6;
+            var outlinePadRight = columnIndex === columnCells.length - 1 ? 6 : 0;
             var outlineLeft = Math.min.apply(null, rects.map(function (r) { return r.left; }));
-            var outlineRight = Math.max.apply(null, rects.map(function (r) { return r.right; }));
+            var outlineRight = Math.max.apply(null, rects.map(function (r) { return r.right; })) + outlinePadRight;
             var outlineWidthPx = outlineRight - outlineLeft;
             var outlineLeftPx = outlineLeft - layerRect.left;
 
